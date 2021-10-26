@@ -1,5 +1,4 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.sql.*;
 
@@ -12,6 +11,7 @@ public class DictionaryManagement extends Dictionary {
     private String password = "";
     private String sqlSelect = "SELECT * FROM av";
     private String sqlSelect2 = "SELECT * FROM av WHERE word = ?";
+    private String sqlSelect3 = "SELECT * FROM av WHERE word LIKE ?";
     private String sqlInsert = "INSERT INTO av (word,description) VALUES (?, ?)";
     private String sqlUpdate = "UPDATE av SET word = ?, description = ? WHERE id = ?";
     private String sqlDelete = "DELETE FROM av WHERE word = ?";
@@ -148,6 +148,7 @@ public class DictionaryManagement extends Dictionary {
             PreparedStatement pre_statement1 = connection.prepareStatement(sqlSelect2);
             pre_statement1.setString(1,preWord.getWord_target());
             ResultSet resultSet = pre_statement1.executeQuery();
+            resultSet.next();
             int id = resultSet.getInt("id");
             PreparedStatement pre_statement2 = connection.prepareStatement(sqlUpdate);
             pre_statement2.setString(1,editWord.getWord_target());
@@ -158,6 +159,42 @@ public class DictionaryManagement extends Dictionary {
             pre_statement2.close();
             resultSet.close();
             connection.commit();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void search(String searchWord) {
+        try (Connection connection = DriverManager.getConnection(url,username,password)) {
+            connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement(sqlSelect3);
+            statement.setString(1, searchWord + "%");
+            ResultSet resultSet = statement.executeQuery();
+            while(resultSet.next()) {
+                System.out.print(resultSet.getString(2) + ", ");
+            }
+            System.out.println("...");
+            statement.close();
+            resultSet.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void lookup(String searchWord) {
+        try (Connection connection = DriverManager.getConnection(url,username,password)) {
+            connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement(sqlSelect2);
+            statement.setString(1, searchWord);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+
+            System.out.printf("%-8d", resultSet.getInt(1));
+            System.out.printf("%-23s", "| " + resultSet.getString(2));
+            System.out.println("| " + resultSet.getString(4));
+
+            statement.close();
+            resultSet.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
