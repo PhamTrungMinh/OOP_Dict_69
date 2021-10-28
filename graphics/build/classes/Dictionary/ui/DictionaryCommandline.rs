@@ -1,0 +1,1 @@
+Dictionary.ui.DictionaryCommandline
